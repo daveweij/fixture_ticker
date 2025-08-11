@@ -80,6 +80,7 @@ function App() {
   const [homeAdvantage, setHomeAdvantage] = useState(0);
   const [activeTab, setActiveTab] = useState<'fixtures' | 'strengths'>('fixtures');
   const [teamStrengths, setTeamStrengths] = useState<TeamStrength[]>([]);
+  const [editedStrengths, setEditedStrengths] = useState<Record<string, {attack: number; defense: number}>>({});
 
   useEffect(() => {
     Promise.all([
@@ -99,7 +100,13 @@ function App() {
       const strengthsMap: Record<string, number> = {};
       const { strengths: strengthsArr, homeAdvantage } = parseStrengthsCSV(strengthsText);
 
-      const strengthArray: Array<[string, number]> = strengthsArr.map(s => {
+      // If user has edited strengths, use those for calculations
+      const strengthsToUse = strengthsArr.map(s => {
+        const edit = editedStrengths[s.team];
+        return edit ? { ...s, ...edit } : s;
+      });
+
+      const strengthArray: Array<[string, number]> = strengthsToUse.map(s => {
         if (strengthType === 'attack') return [s.team, s.attack];
         if (strengthType === 'defense') return [s.team, -1 * s.defense];
         // average
@@ -109,7 +116,6 @@ function App() {
       // add strengths minus home advantage to the array
       const homeValues = strengthArray.map(([, strength]) => strength - homeAdvantage);
       const allValues = [...awayValues, ...homeValues].sort((a, b) => a - b);
-    
 
       strengthArray.forEach(([team, strength]) => {
         strengthsMap[team.toUpperCase()] = strength;
@@ -128,10 +134,10 @@ function App() {
       setMedianStrength(percentile(allValues, 0.5));
       setStrengths(strengthsMap);
       setHomeAdvantage(homeAdvantage);
-      setTeamStrengths(strengthsArr);
+      setTeamStrengths(strengthsToUse);
     })
     .catch(err => setError(err.message));
-  }, [strengthType]);
+  }, [strengthType, editedStrengths]);
 
   return (
     <div className="App">
@@ -177,27 +183,27 @@ function App() {
                 checked={strengthType === 'average'}
                 onChange={() => setStrengthType('average')}
               />
-              Average (Attack - Defense)
+              Combined (Attack - Defense)
             </label>
             <label>
               <input
                 type="radio"
                 name="strengthType"
-                value="Defense"
+                value="attack"
                 checked={strengthType === 'attack'}
                 onChange={() => setStrengthType('attack')}
               />
-              Attack
+              Defense
             </label>
             <label style={{marginLeft: '1em'}}>
               <input
                 type="radio"
                 name="strengthType"
-                value="Attack"
+                value="defense"
                 checked={strengthType === 'defense'}
                 onChange={() => setStrengthType('defense')}
               />
-              Defense
+              Attack
             </label>
           </div>
           {!error && fixtureRows.length > 0 && (
@@ -242,24 +248,95 @@ function App() {
         <>
           <h2>Team Attack and Defense Strengths</h2>
           {teamStrengths.length > 0 && (
-            <table style={{borderCollapse: 'collapse', width: '100%', maxWidth: '600px'}}>
+            <table style={{borderCollapse: 'collapse', width: '100%', maxWidth: '600px', fontSize: '1.05em', background: '#fafbfc', boxShadow: '0 2px 8px rgba(0,0,0,0.04)'}}>
               <thead>
-                <tr>
-                  <th style={{border: '1px solid #ccc', padding: '8px', textAlign: 'left'}}>Team</th>
-                  <th style={{border: '1px solid #ccc', padding: '8px', textAlign: 'center'}}>Attack</th>
-                  <th style={{border: '1px solid #ccc', padding: '8px', textAlign: 'center'}}>Defense</th>
-                  <th style={{border: '1px solid #ccc', padding: '8px', textAlign: 'center'}}>Difference</th>
+                <tr style={{background: '#f0f4f8'}}>
+                  <th style={{border: '1px solid #e0e0e0', padding: '10px 12px', textAlign: 'left', fontWeight: 600}}>Team</th>
+                  <th style={{border: '1px solid #e0e0e0', padding: '10px 12px', textAlign: 'center', fontWeight: 600}}>Attack</th>
+                  <th style={{border: '1px solid #e0e0e0', padding: '10px 12px', textAlign: 'center', fontWeight: 600}}>Defense</th>
+                  <th style={{border: '1px solid #e0e0e0', padding: '10px 12px', textAlign: 'center', fontWeight: 600}}>Difference</th>
                 </tr>
               </thead>
               <tbody>
                 {teamStrengths
                   .sort((a, b) => (b.attack - b.defense) - (a.attack - a.defense))
                   .map(team => (
-                    <tr key={team.team}>
-                      <td style={{border: '1px solid #ccc', padding: '8px', fontWeight: 'bold'}}>{team.team}</td>
-                      <td style={{border: '1px solid #ccc', padding: '8px', textAlign: 'center'}}>{team.attack.toFixed(2)}</td>
-                      <td style={{border: '1px solid #ccc', padding: '8px', textAlign: 'center'}}>{team.defense.toFixed(2)}</td>
-                      <td style={{border: '1px solid #ccc', padding: '8px', textAlign: 'center'}}>{(team.attack - team.defense).toFixed(2)}</td>
+                    <tr key={team.team} style={{background: '#fff'}}>
+                      <td style={{border: '1px solid #e0e0e0', padding: '10px 12px', fontWeight: 'bold'}}>{team.team}</td>
+                      <td style={{border: '1px solid #e0e0e0', padding: '0'}}>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          pattern="[0-9]*"
+                          value={((editedStrengths[team.team]?.attack ?? team.attack).toFixed(2))}
+                          style={{
+                            width: '100%',
+                            height: '38px',
+                            border: 'none',
+                            background: 'transparent',
+                            textAlign: 'center',
+                            fontSize: '1em',
+                            outline: 'none',
+                            fontWeight: 500,
+                            color: '#007acc',
+                            boxSizing: 'border-box',
+                            borderBottom: '2px solid #e0e0e0',
+                            transition: 'border-color 0.2s',
+                          }}
+                          onFocus={e => e.target.style.borderBottom = '2px solid #007acc'}
+                          onBlur={e => e.target.style.borderBottom = '2px solid #e0e0e0'}
+                          onChange={e => {
+                            const val = parseFloat(e.target.value);
+                            setEditedStrengths(prev => ({
+                              ...prev,
+                              [team.team]: {
+                                attack: isNaN(val) ? team.attack : val,
+                                defense: prev[team.team]?.defense ?? team.defense
+                              }
+                            }));
+                          }}
+                        />
+                      </td>
+                      <td style={{border: '1px solid #e0e0e0', padding: '0'}}>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          pattern="[0-9]*"
+                          value={((editedStrengths[team.team]?.defense ?? team.defense).toFixed(2))}
+                          style={{
+                            width: '100%',
+                            height: '38px',
+                            border: 'none',
+                            background: 'transparent',
+                            textAlign: 'center',
+                            fontSize: '1em',
+                            outline: 'none',
+                            fontWeight: 500,
+                            color: '#d32f2f',
+                            boxSizing: 'border-box',
+                            borderBottom: '2px solid #e0e0e0',
+                            transition: 'border-color 0.2s',
+                          }}
+                          onFocus={e => e.target.style.borderBottom = '2px solid #d32f2f'}
+                          onBlur={e => e.target.style.borderBottom = '2px solid #e0e0e0'}
+                          onChange={e => {
+                            const val = parseFloat(e.target.value);
+                            setEditedStrengths(prev => ({
+                              ...prev,
+                              [team.team]: {
+                                attack: prev[team.team]?.attack ?? team.attack,
+                                defense: isNaN(val) ? team.defense : val
+                              }
+                            }));
+                          }}
+                        />
+                      </td>
+                      <td style={{border: '1px solid #e0e0e0', padding: '10px 12px', textAlign: 'center', fontWeight: 500, color: '#333'}}>
+                        {(
+                          (editedStrengths[team.team]?.attack ?? team.attack)
+                          - (editedStrengths[team.team]?.defense ?? team.defense)
+                        ).toFixed(2)}
+                      </td>
                     </tr>
                   ))}
               </tbody>
