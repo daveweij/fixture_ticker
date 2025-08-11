@@ -81,6 +81,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<'fixtures' | 'strengths'>('fixtures');
   const [teamStrengths, setTeamStrengths] = useState<TeamStrength[]>([]);
   const [editedStrengths, setEditedStrengths] = useState<Record<string, {attack: number; defense: number}>>({});
+  const [avgRange, setAvgRange] = useState(1);
 
   useEffect(() => {
     Promise.all([
@@ -106,22 +107,59 @@ function App() {
         return edit ? { ...s, ...edit } : s;
       });
 
-      const strengthArray: Array<[string, number]> = strengthsToUse.map(s => {
-        if (strengthType === 'attack') return [s.team, s.attack];
-        if (strengthType === 'defense') return [s.team, -1 * s.defense];
-        // average
-        return [s.team, s.attack - s.defense];
-      });
-      const awayValues = strengthArray.map(([, strength]) => strength);
-      // add strengths minus home advantage to the array
-      const homeValues = strengthArray.map(([, strength]) => strength - homeAdvantage);
-      const allValues = [...awayValues, ...homeValues].sort((a, b) => a - b);
+      // For color range: if avgRange > 1, calculate all possible averages for all teams
+      let colorValues: number[] = [];
+      if (avgRange > 1 && rows.length > 0) {
+        for (const row of rows) {
+          for (let i = 0; i < row.fixtures.length; i++) {
+            let sum = 0;
+            let count = 0;
+            for (let j = i; j < Math.min(i + avgRange, row.fixtures.length); j++) {
+              const opp = row.fixtures[j].trim();
+              const oppKey = opp.toUpperCase();
+              let value = null;
+              const teamObj = strengthsToUse.find(t => t.team.toUpperCase() === oppKey);
+              if (teamObj) {
+                if (strengthType === 'attack') value = teamObj.attack;
+                else if (strengthType === 'defense') value = -1 * teamObj.defense;
+                else value = teamObj.attack - teamObj.defense;
+                if (opp === oppKey && value !== undefined) {
+                  value -= homeAdvantage;
+                }
+                if (value !== undefined) {
+                  sum += value;
+                  count++;
+                }
+              }
+            }
+            if (count > 0) colorValues.push(sum / count);
+          }
+        }
+      } else {
+        // Default: use single fixture values
+        const strengthArray: Array<[string, number]> = strengthsToUse.map(s => {
+          if (strengthType === 'attack') return [s.team, s.attack];
+          if (strengthType === 'defense') return [s.team, -1 * s.defense];
+          // average
+          return [s.team, s.attack - s.defense];
+        });
+        const awayValues = strengthArray.map(([, strength]) => strength);
+        const homeValues = strengthArray.map(([, strength]) => strength - homeAdvantage);
+        colorValues = [...awayValues, ...homeValues];
+      }
+      colorValues.sort((a, b) => a - b);
 
-      strengthArray.forEach(([team, strength]) => {
-        strengthsMap[team.toUpperCase()] = strength;
+      // strengthsMap for fixture lookup
+      strengthsToUse.forEach(s => {
+        let value;
+        if (strengthType === 'attack') value = s.attack;
+        else if (strengthType === 'defense') value = -1 * s.defense;
+        else value = s.attack - s.defense;
+        strengthsMap[s.team.toUpperCase()] = value;
       });
 
       const percentile = (arr: number[], p: number) => {
+        if (!arr.length) return 0;
         const idx = (arr.length - 1) * p;
         const lower = Math.floor(idx);
         const upper = Math.ceil(idx);
@@ -129,15 +167,15 @@ function App() {
         return arr[lower] + (arr[upper] - arr[lower]) * (idx - lower);
       };
 
-      setMinStrength(percentile(allValues, 0.05));
-      setMaxStrength(percentile(allValues, 0.95));
-      setMedianStrength(percentile(allValues, 0.5));
+      setMinStrength(percentile(colorValues, 0.05));
+      setMaxStrength(percentile(colorValues, 0.95));
+      setMedianStrength(percentile(colorValues, 0.5));
       setStrengths(strengthsMap);
       setHomeAdvantage(homeAdvantage);
       setTeamStrengths(strengthsToUse);
     })
     .catch(err => setError(err.message));
-  }, [strengthType, editedStrengths]);
+  }, [strengthType, editedStrengths, avgRange]);
 
   return (
     <div className="App">
@@ -174,7 +212,7 @@ function App() {
 
       {activeTab === 'fixtures' && (
         <>
-          <div style={{marginBottom: '1em', display: 'flex', gap: '1.5em', alignItems: 'center'}}>
+          <div style={{marginBottom: '1em', display: 'flex', gap: '2em', alignItems: 'center'}}>
             <label style={{marginLeft: '1em'}}>
               <input
                 type="radio"
@@ -205,6 +243,23 @@ function App() {
               />
               Attack
             </label>
+            <div style={{display: 'flex', alignItems: 'center', gap: '0.5em'}}>
+              <label htmlFor="avgRange" style={{fontWeight: 500}}>Averaging range:</label>
+              <input
+                id="avgRange"
+                type="number"
+                min={1}
+                max={gameweekCount}
+                value={avgRange}
+                style={{width: '60px', textAlign: 'center', fontSize: '1em', border: '1px solid #ccc', borderRadius: '4px', padding: '2px 6px'}}
+                onChange={e => {
+                  let val = parseInt(e.target.value);
+                  if (isNaN(val) || val < 1) val = 1;
+                  if (val > gameweekCount) val = gameweekCount;
+                  setAvgRange(val);
+                }}
+              />
+            </div>
           </div>
           {!error && fixtureRows.length > 0 && (
             <table style={{borderCollapse: 'collapse', width: '100%'}}>
@@ -221,15 +276,25 @@ function App() {
                   <tr key={row.team}>
                     <td style={{border: '1px solid #ccc', padding: '4px', fontWeight: 'bold', textAlign: 'left'}}>{row.team}</td>
                     {row.fixtures.map((fixture, i) => {
-                      const opp = fixture.trim();
-                      const oppKey = opp.toUpperCase();
-                      let value;
-                      value = strengths[oppKey];
-                      if (opp === oppKey && value !== undefined) {
-                        value -= homeAdvantage;
+                      // Average over next avgRange matches
+                      let avgValue = null;
+                      let count = 0;
+                      let sum = 0;
+                      for (let j = i; j < Math.min(i + avgRange, row.fixtures.length); j++) {
+                        const opp = row.fixtures[j].trim();
+                        const oppKey = opp.toUpperCase();
+                        let value = strengths[oppKey];
+                        if (opp === oppKey && value !== undefined) {
+                          value -= homeAdvantage;
+                        }
+                        if (value !== undefined) {
+                          sum += value;
+                          count++;
+                        }
                       }
-                      const color = (value !== undefined)
-                        ? getColor(value, minStrength, maxStrength, medianStrength)
+                      if (count > 0) avgValue = sum / count;
+                      const color = (avgValue !== null)
+                        ? getColor(avgValue, minStrength, maxStrength, medianStrength)
                         : '#fff';
                       return (
                         <td key={i} style={{border: '1px solid #ccc', padding: '4px', background: color}}>{fixture}</td>
