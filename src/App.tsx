@@ -38,8 +38,8 @@ function parseStrengthsCSV(csv: string): { strengths: TeamStrength[]; homeAdvant
     } else {
       strengths.push({
         team: cells[0],
-        attack: parseFloat(cells[1]),
-        defense: parseFloat(cells[2]),
+        attack: Math.round(parseFloat(cells[1]) * 100) / 100,
+        defense: Math.round(parseFloat(cells[2]) * 100) / 100,
       });
     }
   });
@@ -83,7 +83,9 @@ function App() {
   const [activeTab, setActiveTab] = useState<'fixtures' | 'strengths'>('fixtures');
   const [teamStrengths, setTeamStrengths] = useState<TeamStrength[]>([]);
   const [editedStrengths, setEditedStrengths] = useState<Record<string, {attack: number; defense: number}>>({});
+  const [inputValues, setInputValues] = useState<Record<string, {attack?: string; defense?: string}>>({});
   const [avgRange, setAvgRange] = useState(1);
+  const [avgRangeInput, setAvgRangeInput] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     try {
@@ -245,13 +247,21 @@ function App() {
                 type="number"
                 min={1}
                 max={gameweekCount}
-                value={avgRange}
+                value={avgRangeInput ?? avgRange}
                 style={{width: '60px', textAlign: 'center', fontSize: '1em', border: '1px solid #ccc', borderRadius: '4px', padding: '2px 6px'}}
-                onChange={e => {
+                onBlur={e => {
                   let val = parseInt(e.target.value);
                   if (isNaN(val) || val < 1) val = 1;
                   if (val > gameweekCount) val = gameweekCount;
                   setAvgRange(val);
+                  setAvgRangeInput(val.toString());
+                }}
+                onChange={e => {
+                  setAvgRangeInput(e.target.value);
+                  const val = parseInt(e.target.value);
+                  if (!isNaN(val) && val >= 1 && val <= gameweekCount) {
+                    setAvgRange(val);
+                  }
                 }}
               />
             </div>
@@ -328,7 +338,7 @@ function App() {
                           type="text"
                           inputMode="decimal"
                           pattern="[0-9]*"
-                          value={((editedStrengths[team.team]?.attack ?? team.attack).toFixed(2))}
+                          value={inputValues[team.team]?.attack ?? (editedStrengths[team.team]?.attack ?? team.attack)}
                           style={{
                             width: '100%',
                             height: '38px',
@@ -344,17 +354,24 @@ function App() {
                             transition: 'border-color 0.2s',
                           }}
                           onFocus={e => e.target.style.borderBottom = '2px solid #007acc'}
-                          onBlur={e => e.target.style.borderBottom = '2px solid #e0e0e0'}
                           onChange={e => {
-                            const val = parseFloat(e.target.value);
-                            setEditedStrengths(prev => ({
+                            setInputValues(prev => ({
                               ...prev,
                               [team.team]: {
-                                attack: isNaN(val) ? team.attack : val,
-                                defense: prev[team.team]?.defense ?? team.defense
+                                attack: e.target.value,
+                                defense: prev[team.team]?.defense ?? undefined
                               }
                             }));
-                          }}
+                            const val = parseFloat(e.target.value);
+                            if (!isNaN(val)) {
+                              setEditedStrengths(prev => ({
+                                ...prev,
+                                [team.team]: {
+                                  attack: Math.round(val * 100) / 100,
+                                  defense: prev[team.team]?.defense ?? team.defense
+                                }
+                              }));
+                          }}}
                         />
                       </td>
                       <td style={{border: '1px solid #e0e0e0', padding: '0'}}>
@@ -362,7 +379,7 @@ function App() {
                           type="text"
                           inputMode="decimal"
                           pattern="[0-9]*"
-                          value={((editedStrengths[team.team]?.defense ?? team.defense).toFixed(2))}
+                          value={inputValues[team.team]?.defense ?? (editedStrengths[team.team]?.defense ?? team.defense)}
                           style={{
                             width: '100%',
                             height: '38px',
@@ -378,17 +395,24 @@ function App() {
                             transition: 'border-color 0.2s',
                           }}
                           onFocus={e => e.target.style.borderBottom = '2px solid #d32f2f'}
-                          onBlur={e => e.target.style.borderBottom = '2px solid #e0e0e0'}
                           onChange={e => {
-                            const val = parseFloat(e.target.value);
-                            setEditedStrengths(prev => ({
+                            setInputValues(prev => ({
                               ...prev,
                               [team.team]: {
-                                attack: prev[team.team]?.attack ?? team.attack,
-                                defense: isNaN(val) ? team.defense : val
+                                attack: prev[team.team]?.attack ?? undefined,
+                                defense: e.target.value
                               }
                             }));
-                          }}
+                            const val = parseFloat(e.target.value);
+                            if (!isNaN(val)) {
+                              setEditedStrengths(prev => ({
+                                ...prev,
+                                [team.team]: {
+                                  attack: prev[team.team]?.attack ?? team.attack,
+                                  defense: Math.round(val * 100) / 100
+                                }
+                              }));
+                            }}}
                         />
                       </td>
                       <td style={{border: '1px solid #e0e0e0', padding: '10px 12px', textAlign: 'center', fontWeight: 500, color: '#333'}}>
