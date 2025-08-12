@@ -78,7 +78,7 @@ function App() {
   const [minStrength, setMinStrength] = useState(0);
   const [maxStrength, setMaxStrength] = useState(0);
   const [medianStrength, setMedianStrength] = useState(0);
-  const [strengthType, setStrengthType] = useState<'attack' | 'defense' | 'average'>('attack');
+  const [strengthType, setStrengthType] = useState<'attack' | 'defense' | 'combined'>('combined');
   const [homeAdvantage, setHomeAdvantage] = useState(0);
   const [activeTab, setActiveTab] = useState<'fixtures' | 'strengths'>('fixtures');
   const [teamStrengths, setTeamStrengths] = useState<TeamStrength[]>([]);
@@ -213,9 +213,9 @@ function App() {
               <input
                 type="radio"
                 name="strengthType"
-                value="average"
-                checked={strengthType === 'average'}
-                onChange={() => setStrengthType('average')}
+                value="combined"
+                checked={strengthType === 'combined'}
+                onChange={() => setStrengthType('combined')}
               />
               Combined (Attack - Defense)
             </label>
