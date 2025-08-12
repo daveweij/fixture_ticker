@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import './App.css';
+import fixturesCSV from './assets/fixtures_by_team.csv?raw';
+import strengthsCSV from './assets/team_strengths.csv?raw';
 
 
 type FixtureRow = {
@@ -84,17 +86,9 @@ function App() {
   const [avgRange, setAvgRange] = useState(1);
 
   useEffect(() => {
-    Promise.all([
-      fetch('src/assets/fixtures_by_team.csv').then(res => {
-        if (!res.ok) throw new Error('Failed to load fixtures CSV');
-        return res.text();
-      }),
-      fetch('src/assets/team_strengths.csv').then(res => {
-        if (!res.ok) throw new Error('Failed to load strengths CSV');
-        return res.text();
-      })
-    ])
-    .then(([fixturesText, strengthsText]) => {
+    try {
+      const fixturesText = fixturesCSV;
+      const strengthsText = strengthsCSV;
       const rows = parseFixturesCSV(fixturesText);
       setFixtureRows(rows);
       setGameweekCount(rows.length > 0 ? rows[0].fixtures.length : 0);
@@ -173,8 +167,9 @@ function App() {
       setStrengths(strengthsMap);
       setHomeAdvantage(homeAdvantage);
       setTeamStrengths(strengthsToUse);
-    })
-    .catch(err => setError(err.message));
+    } catch (err: any) {
+      setError(err.message || String(err));
+    }
   }, [strengthType, editedStrengths, avgRange]);
 
   return (
