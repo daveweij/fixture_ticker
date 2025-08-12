@@ -176,7 +176,6 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Fixture Ticker</h1>
       {error && <div style={{color: 'red'}}>Error: {error}</div>}
       
       {/* Tab Navigation */}
