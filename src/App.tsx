@@ -176,31 +176,19 @@ function App() {
 
   return (
     <div className="App">
-      {error && <div style={{color: 'red'}}>Error: {error}</div>}
+      {error && <div className="error-message">Error: {error}</div>}
       
       {/* Tab Navigation */}
-      <div style={{marginBottom: '1em', display: 'flex', gap: '1em', alignItems: 'center'}}>
+      <div className="tab-nav">
         <button 
           onClick={() => setActiveTab('fixtures')}
-          style={{
-            padding: '8px 16px',
-            border: '1px solid #ccc',
-            background: activeTab === 'fixtures' ? '#007acc' : '#fff',
-            color: activeTab === 'fixtures' ? '#fff' : '#000',
-            cursor: 'pointer'
-          }}
+          className={activeTab === 'fixtures' ? 'tab-btn active' : 'tab-btn'}
         >
           Fixtures
         </button>
         <button 
           onClick={() => setActiveTab('strengths')}
-          style={{
-            padding: '8px 16px',
-            border: '1px solid #ccc',
-            background: activeTab === 'strengths' ? '#007acc' : '#fff',
-            color: activeTab === 'strengths' ? '#fff' : '#000',
-            cursor: 'pointer'
-          }}
+          className={activeTab === 'strengths' ? 'tab-btn active' : 'tab-btn'}
         >
           Team Strengths
         </button>
@@ -208,8 +196,8 @@ function App() {
 
       {activeTab === 'fixtures' && (
         <>
-          <div style={{marginBottom: '1em', display: 'flex', gap: '2em', alignItems: 'center'}}>
-            <label style={{marginLeft: '1em'}}>
+          <div className="fixtures-controls">
+            <label className="control-label">
               <input
                 type="radio"
                 name="strengthType"
@@ -219,7 +207,7 @@ function App() {
               />
               Combined (Attack - Defense)
             </label>
-            <label>
+            <label className="control-label">
               <input
                 type="radio"
                 name="strengthType"
@@ -229,7 +217,7 @@ function App() {
               />
               Defense
             </label>
-            <label style={{marginLeft: '1em'}}>
+            <label className="control-label">
               <input
                 type="radio"
                 name="strengthType"
@@ -239,15 +227,15 @@ function App() {
               />
               Attack
             </label>
-            <div style={{display: 'flex', alignItems: 'center', gap: '0.5em'}}>
-              <label htmlFor="avgRange" style={{fontWeight: 500}}>Averaging range:</label>
+            <div className="avg-range-group">
+              <label htmlFor="avgRange" className="avg-range-label">Averaging range:</label>
               <input
                 id="avgRange"
                 type="number"
                 min={1}
                 max={gameweekCount}
                 value={avgRangeInput ?? avgRange}
-                style={{width: '60px', textAlign: 'center', fontSize: '1em', border: '1px solid #ccc', borderRadius: '4px', padding: '2px 6px'}}
+                className="avg-range-input"
                 onBlur={e => {
                   let val = parseInt(e.target.value);
                   if (isNaN(val) || val < 1) val = 1;
@@ -317,42 +305,30 @@ function App() {
         <>
           <h2>Team Attack and Defense Strengths</h2>
           {teamStrengths.length > 0 && (
-            <table style={{borderCollapse: 'collapse', width: '100%', maxWidth: '600px', fontSize: '1.05em', background: '#fafbfc', boxShadow: '0 2px 8px rgba(0,0,0,0.04)'}}>
+            <table className="strengths-table">
               <thead>
-                <tr style={{background: '#f0f4f8'}}>
-                  <th style={{border: '1px solid #e0e0e0', padding: '10px 12px', textAlign: 'left', fontWeight: 600}}>Team</th>
-                  <th style={{border: '1px solid #e0e0e0', padding: '10px 12px', textAlign: 'center', fontWeight: 600}}>Attack</th>
-                  <th style={{border: '1px solid #e0e0e0', padding: '10px 12px', textAlign: 'center', fontWeight: 600}}>Defense</th>
-                  <th style={{border: '1px solid #e0e0e0', padding: '10px 12px', textAlign: 'center', fontWeight: 600}}>Difference</th>
+                <tr className="strengths-header-row">
+                  <th className="strengths-header">Team</th>
+                  <th className="strengths-header">Attack</th>
+                  <th className="strengths-header">Defense</th>
+                  <th className="strengths-header">Difference</th>
                 </tr>
               </thead>
               <tbody>
                 {teamStrengths
                   .sort((a, b) => (b.attack - b.defense) - (a.attack - a.defense))
                   .map(team => (
-                    <tr key={team.team} style={{background: '#fff'}}>
-                      <td style={{border: '1px solid #e0e0e0', padding: '10px 12px', fontWeight: 'bold'}}>{team.team}</td>
-                      <td style={{border: '1px solid #e0e0e0', padding: '0'}}>
+                    <tr key={team.team} className="strengths-row">
+                      <td className="strengths-team">{team.team}</td>
+                      <td className="strengths-cell">
                         <input
                           type="text"
                           inputMode="decimal"
                           pattern="[0-9]*"
                           value={inputValues[team.team]?.attack ?? (editedStrengths[team.team]?.attack ?? team.attack)}
-                          style={{
-                            width: '100%',
-                            height: '38px',
-                            border: 'none',
-                            background: 'transparent',
-                            textAlign: 'center',
-                            fontSize: '1em',
-                            outline: 'none',
-                            fontWeight: 500,
-                            color: '#007acc',
-                            boxSizing: 'border-box',
-                            borderBottom: '2px solid #e0e0e0',
-                            transition: 'border-color 0.2s',
-                          }}
-                          onFocus={e => e.target.style.borderBottom = '2px solid #007acc'}
+                          className="strengths-input attack"
+                          onFocus={e => e.target.classList.add('focus')}
+                          onBlur={e => e.target.classList.remove('focus')}
                           onChange={e => {
                             setInputValues(prev => ({
                               ...prev,
@@ -370,30 +346,19 @@ function App() {
                                   defense: prev[team.team]?.defense ?? team.defense
                                 }
                               }));
-                          }}}
+                            }
+                          }}
                         />
                       </td>
-                      <td style={{border: '1px solid #e0e0e0', padding: '0'}}>
+                      <td className="strengths-cell">
                         <input
                           type="text"
                           inputMode="decimal"
                           pattern="[0-9]*"
                           value={inputValues[team.team]?.defense ?? (editedStrengths[team.team]?.defense ?? team.defense)}
-                          style={{
-                            width: '100%',
-                            height: '38px',
-                            border: 'none',
-                            background: 'transparent',
-                            textAlign: 'center',
-                            fontSize: '1em',
-                            outline: 'none',
-                            fontWeight: 500,
-                            color: '#d32f2f',
-                            boxSizing: 'border-box',
-                            borderBottom: '2px solid #e0e0e0',
-                            transition: 'border-color 0.2s',
-                          }}
-                          onFocus={e => e.target.style.borderBottom = '2px solid #d32f2f'}
+                          className="strengths-input defense"
+                          onFocus={e => e.target.classList.add('focus')}
+                          onBlur={e => e.target.classList.remove('focus')}
                           onChange={e => {
                             setInputValues(prev => ({
                               ...prev,
@@ -411,10 +376,11 @@ function App() {
                                   defense: Math.round(val * 100) / 100
                                 }
                               }));
-                            }}}
+                            }
+                          }}
                         />
                       </td>
-                      <td style={{border: '1px solid #e0e0e0', padding: '10px 12px', textAlign: 'center', fontWeight: 500, color: '#333'}}>
+                      <td className="strengths-diff">
                         {(
                           (editedStrengths[team.team]?.attack ?? team.attack)
                           - (editedStrengths[team.team]?.defense ?? team.defense)

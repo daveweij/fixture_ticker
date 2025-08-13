@@ -1,3 +1,123 @@
+.strengths-table {
+  border-collapse: collapse;
+  width: 100%;
+  max-width: 600px;
+  font-size: 1.05em;
+  background: #fafbfc;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.strengths-header-row {
+  background: #f0f4f8;
+}
+.strengths-header {
+  border: 1px solid #e0e0e0;
+  padding: 10px 12px;
+  text-align: center;
+  font-weight: 600;
+}
+.strengths-header:first-child {
+  text-align: left;
+}
+.strengths-row {
+  background: #fff;
+}
+.strengths-team {
+  border: 1px solid #e0e0e0;
+  padding: 10px 12px;
+  font-weight: bold;
+}
+.strengths-cell {
+  border: 1px solid #e0e0e0;
+  padding: 0;
+}
+.strengths-input {
+  width: 100%;
+  height: 38px;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 1em;
+  outline: none;
+  font-weight: 500;
+  box-sizing: border-box;
+  border-bottom: 2px solid #e0e0e0;
+  transition: border-color 0.2s;
+}
+.strengths-input.attack {
+  color: #007acc;
+}
+.strengths-input.defense {
+  color: #d32f2f;
+}
+.strengths-input.focus.attack {
+  border-bottom: 2px solid #007acc;
+}
+.strengths-input.focus.defense {
+  border-bottom: 2px solid #d32f2f;
+}
+.strengths-diff {
+  border: 1px solid #e0e0e0;
+  padding: 10px 12px;
+  text-align: center;
+  font-weight: 500;
+  color: #333;
+}
+.error-message {
+  color: red;
+  margin-bottom: 1em;
+}
+
+.tab-nav {
+  margin-bottom: 1em;
+  display: flex;
+  gap: 1em;
+  align-items: center;
+}
+
+.tab-btn {
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #000;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.tab-btn.active {
+  background: #007acc;
+  color: #fff;
+}
+
+.fixtures-controls {
+  margin-bottom: 1em;
+  display: flex;
+  gap: 2em;
+  align-items: center;
+}
+
+.control-label {
+  margin-left: 1em;
+  font-weight: 500;
+}
+
+.avg-range-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.avg-range-label {
+  font-weight: 500;
+}
+
+.avg-range-input {
+  width: 60px;
+  text-align: center;
+  font-size: 1em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 2px 6px;
+}
 #root {
   max-width: 1280px;
   padding: 2rem;
