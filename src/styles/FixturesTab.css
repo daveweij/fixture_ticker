@@ -1,24 +1,42 @@
 /* FixturesTab component styles migrated from inline styles */
+
+/* Define CSS custom properties for fixtures table */
+:root {
+  --fixtures-border-color: #ccc;
+  --fixtures-text-color: inherit;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fixtures-border-color: #555;
+    --fixtures-text-color: #e0e0e0;
+  }
+}
+
 .fixtures-table {
   border-collapse: collapse;
   width: 100%;
 }
 .fixtures-th {
-  border: 1px solid #ccc;
+  border: 1px solid var(--fixtures-border-color);
   padding: 4px;
   text-align: left;
+  color: var(--fixtures-text-color);
 }
 .fixtures-th-number {
-  border: 1px solid #ccc;
+  border: 1px solid var(--fixtures-border-color);
   padding: 4px;
+  color: var(--fixtures-text-color);
 }
 .fixtures-td-team {
-  border: 1px solid #ccc;
+  border: 1px solid var(--fixtures-border-color);
   padding: 4px;
   font-weight: bold;
   text-align: left;
+  color: var(--fixtures-text-color);
 }
 .fixtures-td {
-  border: 1px solid #ccc;
+  border: 1px solid var(--fixtures-border-color);
   padding: 4px;
+  color: #000;
 }

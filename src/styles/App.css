@@ -1,47 +1,79 @@
+/* CSS Custom Properties for theming */
+:root {
+  --table-bg: #fafbfc;
+  --table-row-bg: #fff;
+  --table-header-bg: #f0f4f8;
+  --border-color: #e0e0e0;
+  --text-color: #333;
+  --button-bg: #fff;
+  --button-border: #ccc;
+  --button-text: #000;
+  --input-bg: transparent;
+  --shadow-color: rgba(0,0,0,0.04);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --table-bg: #2a2a2a;
+    --table-row-bg: #333;
+    --table-header-bg: #404040;
+    --border-color: #555;
+    --text-color: #e0e0e0;
+    --button-bg: #333;
+    --button-border: #555;
+    --button-text: #e0e0e0;
+    --input-bg: transparent;
+    --shadow-color: rgba(0,0,0,0.3);
+  }
+}
+
 .strengths-table {
   border-collapse: collapse;
   width: 100%;
   max-width: 600px;
   font-size: 1.05em;
-  background: #fafbfc;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  background: var(--table-bg);
+  box-shadow: 0 2px 8px var(--shadow-color);
 }
 .strengths-header-row {
-  background: #f0f4f8;
+  background: var(--table-header-bg);
 }
 .strengths-header {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   padding: 10px 12px;
   text-align: center;
   font-weight: 600;
+  color: var(--text-color);
 }
 .strengths-header:first-child {
   text-align: left;
 }
 .strengths-row {
-  background: #fff;
+  background: var(--table-row-bg);
 }
 .strengths-team {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   padding: 10px 12px;
   font-weight: bold;
+  color: var(--text-color);
 }
 .strengths-cell {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   padding: 0;
 }
 .strengths-input {
   width: 100%;
   height: 38px;
   border: none;
-  background: transparent;
+  background: var(--input-bg);
   text-align: center;
   font-size: 1em;
   outline: none;
   font-weight: 500;
   box-sizing: border-box;
-  border-bottom: 2px solid #e0e0e0;
+  border-bottom: 2px solid var(--border-color);
   transition: border-color 0.2s;
+  color: var(--text-color);
 }
 .strengths-input.attack {
   color: #007acc;
@@ -56,11 +88,11 @@
   border-bottom: 2px solid #d32f2f;
 }
 .strengths-diff {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   padding: 10px 12px;
   text-align: center;
   font-weight: 500;
-  color: #333;
+  color: var(--text-color);
 }
 .error-message {
   color: red;
@@ -76,9 +108,9 @@
 
 .tab-btn {
   padding: 8px 16px;
-  border: 1px solid #ccc;
-  background: #fff;
-  color: #000;
+  border: 1px solid var(--button-border);
+  background: var(--button-bg);
+  color: var(--button-text);
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
@@ -98,6 +130,7 @@
 .control-label {
   margin-left: 1em;
   font-weight: 500;
+  color: var(--text-color);
 }
 
 .avg-range-group {
@@ -108,15 +141,18 @@
 
 .avg-range-label {
   font-weight: 500;
+  color: var(--text-color);
 }
 
 .avg-range-input {
   width: 60px;
   text-align: center;
   font-size: 1em;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 2px 6px;
+  background: var(--button-bg);
+  color: var(--text-color);
 }
 #root {
   max-width: 1280px;
