@@ -1,11 +1,11 @@
 import { useEffect, useState, useContext } from 'react';
 import { Context } from './context/Context.tsx';
 import type { ContextType } from './context/Context.tsx';
-import { parseFixturesCSV, parseStrengthsCSV } from './Parse.tsx';
-import type { FixtureRow } from './Parse.tsx';
-import './App.css';
-import StrengthTab from './StrengthTab.tsx';
-import FixturesTab from './FixturesTab.tsx';
+import { parseFixturesCSV, parseStrengthsCSV } from './utils/parse';
+import type { FixtureRow } from './utils/parse';
+import './styles/App.css';
+import StrengthTab from './components/StrengthTab.tsx';
+import FixturesTab from './components/FixturesTab.tsx';
 import fixturesCSV from './assets/fixtures_by_team.csv?raw';
 import strengthsCSV from './assets/team_strengths.csv?raw';
 

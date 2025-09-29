@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
-import { Context } from './context/Context.tsx';
-import type { ContextType, TeamStrength } from './context/Context.tsx';
+import { Context } from '../context/Context.tsx';
+import type { ContextType, TeamStrength } from '../context/Context.tsx';
 
 
 // const StrengthTab: React.FC<FixturesTabProps> = () => (
