@@ -1,5 +1,6 @@
-import { useEffect, useState, useContext, use } from 'react';
-import { Context } from './Context.tsx';
+import { useEffect, useState, useContext } from 'react';
+import { Context } from './context/Context.tsx';
+import type { ContextType } from './context/Context.tsx';
 import { parseFixturesCSV, parseStrengthsCSV } from './Parse.tsx';
 import type { FixtureRow } from './Parse.tsx';
 import './App.css';
@@ -16,7 +17,8 @@ function App() {
   const [activeTab, setActiveTab] = useState<'fixtures' | 'strengths'>('fixtures');
   const [fixtureRows, setFixtureRows] = useState<FixtureRow[]>([]);
   const [homeAdvantage, setHomeAdvantage] = useState(0);
-  const { teamStrengths, setTeamStrengths, editedStrengths, setEditedStrengths } = useContext(Context);
+  const context = useContext(Context) as ContextType;
+  const { setTeamStrengths } = context;
 
   // You should still use useEffect with an empty dependency array to run this only once on mount.
   useEffect(() => {
@@ -32,7 +34,7 @@ function App() {
     } catch (e) {
       setError((e as Error).message);
     }
-  }, []);
+  }, [setTeamStrengths]);
   
   return (
     <div className="App">

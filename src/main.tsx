@@ -1,6 +1,6 @@
 // import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ContextProvider } from './Context.tsx'
+import { ContextProvider } from './context/Context.tsx'
 import './index.css'
 import App from './App.tsx'
 

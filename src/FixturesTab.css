@@ -1,0 +1,24 @@
+/* FixturesTab component styles migrated from inline styles */
+.fixtures-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.fixtures-th {
+  border: 1px solid #ccc;
+  padding: 4px;
+  text-align: left;
+}
+.fixtures-th-number {
+  border: 1px solid #ccc;
+  padding: 4px;
+}
+.fixtures-td-team {
+  border: 1px solid #ccc;
+  padding: 4px;
+  font-weight: bold;
+  text-align: left;
+}
+.fixtures-td {
+  border: 1px solid #ccc;
+  padding: 4px;
+}

@@ -1,10 +1,12 @@
 import { useContext, useState } from "react";
-import { Context } from './Context.tsx';
+import { Context } from './context/Context.tsx';
+import type { ContextType, TeamStrength } from './context/Context.tsx';
 
 
 // const StrengthTab: React.FC<FixturesTabProps> = () => (
 function StrengthTab() {
-  const { teamStrengths, setTeamStrengths, editedStrengths, setEditedStrengths } = useContext(Context);
+  const context = useContext(Context) as ContextType;
+  const { teamStrengths, editedStrengths, setEditedStrengths } = context;
   const [inputValues, setInputValues] = useState<Record<string, {attack?: string; defense?: string}>>({});
 
   return (
@@ -21,9 +23,9 @@ function StrengthTab() {
           </tr>
         </thead>
         <tbody>
-          {teamStrengths
-            .sort((a, b) => (b.attack - b.defense) - (a.attack - a.defense))
-            .map(team => (
+          {(teamStrengths as TeamStrength[])
+            .sort((a: TeamStrength, b: TeamStrength) => (b.attack - b.defense) - (a.attack - a.defense))
+            .map((team: TeamStrength) => (
               <tr key={team.team} className="strengths-row">
                 <td className="strengths-team">{team.team}</td>
                 <td className="strengths-cell">
@@ -36,7 +38,7 @@ function StrengthTab() {
                     onFocus={e => e.target.classList.add('focus')}
                     onBlur={e => e.target.classList.remove('focus')}
                     onChange={e => {
-                      setInputValues(prev => ({
+                      setInputValues((prev: Record<string, {attack?: string; defense?: string}>) => ({
                         ...prev,
                         [team.team]: {
                           attack: e.target.value,
@@ -45,7 +47,7 @@ function StrengthTab() {
                       }));
                       const val = parseFloat(e.target.value);
                       if (!isNaN(val)) {
-                        setEditedStrengths(prev => ({
+                        setEditedStrengths((prev: Record<string, {attack: number; defense: number}>) => ({
                           ...prev,
                           [team.team]: {
                             attack: Math.round(val * 100) / 100,
@@ -66,7 +68,7 @@ function StrengthTab() {
                     onFocus={e => e.target.classList.add('focus')}
                     onBlur={e => e.target.classList.remove('focus')}
                     onChange={e => {
-                      setInputValues(prev => ({
+                      setInputValues((prev: Record<string, {attack?: string; defense?: string}>) => ({
                         ...prev,
                         [team.team]: {
                           attack: prev[team.team]?.attack ?? undefined,
@@ -75,7 +77,7 @@ function StrengthTab() {
                       }));
                       const val = parseFloat(e.target.value);
                       if (!isNaN(val)) {
-                        setEditedStrengths(prev => ({
+                        setEditedStrengths((prev: Record<string, {attack: number; defense: number}>) => ({
                           ...prev,
                           [team.team]: {
                             attack: prev[team.team]?.attack ?? team.attack,

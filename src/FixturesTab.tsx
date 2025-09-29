@@ -1,6 +1,8 @@
-import React, { useContext, useState, useEffect } from "react";
-import type { FixtureRow, TeamStrength } from './Parse.tsx';
-import { Context } from './Context.tsx';
+import { useContext, useState, useEffect } from "react";
+import type { FixtureRow } from './Parse.tsx';
+import { Context } from './context/Context.tsx';
+import type { ContextType } from './context/Context.tsx';
+import './FixturesTab.css';
 
 function getColor(value: number, min: number, max: number, median: number): string {
   // Diverging colormap: green (easy) -> white (average) -> red (hard)
@@ -26,7 +28,8 @@ function getColor(value: number, min: number, max: number, median: number): stri
 }
 
 function FixturesTab({ rows, homeAdvantage }: { rows: FixtureRow[]; homeAdvantage: number }) {
-  const { teamStrengths, setTeamStrengths, editedStrengths, setEditedStrengths } = useContext(Context);
+  const context = useContext(Context) as ContextType;
+  const { teamStrengths, editedStrengths } = context;
 
   const [fixtureRows, setFixtureRows] = useState<FixtureRow[]>([]);
   const [gameweekCount, setGameweekCount] = useState(0);
@@ -48,7 +51,7 @@ function FixturesTab({ rows, homeAdvantage }: { rows: FixtureRow[]; homeAdvantag
       const strengthsMap: Record<string, number> = {};
 
       // If user has edited strengths, use those for calculations
-      const strengthsToUse = teamStrengths.map(s => {
+      const strengthsToUse = teamStrengths.map((s: typeof teamStrengths[number]) => {
         const edit = editedStrengths[s.team];
         return edit ? { ...s, ...edit } : s;
       });
@@ -64,8 +67,8 @@ function FixturesTab({ rows, homeAdvantage }: { rows: FixtureRow[]; homeAdvantag
             for (let j = i; j < Math.min(i + avgRange, row.fixtures.length); j++) {
               const opp = row.fixtures[j].trim();
               const oppKey = opp.toUpperCase();
-              let value = null;
-              const teamObj = strengthsToUse.find(t => t.team.toUpperCase() === oppKey);
+              let value: number | null = null;
+              const teamObj = strengthsToUse.find((t: typeof strengthsToUse[number]) => t.team.toUpperCase() === oppKey);
               if (teamObj) {
                 if (strengthType === 'attack') value = teamObj.attack;
                 else if (strengthType === 'defense') value = -1 * teamObj.defense;
@@ -84,7 +87,7 @@ function FixturesTab({ rows, homeAdvantage }: { rows: FixtureRow[]; homeAdvantag
         }
       } else {
         // Default: use single fixture values
-        const strengthArray: Array<[string, number]> = strengthsToUse.map(s => {
+        const strengthArray: Array<[string, number]> = strengthsToUse.map((s: typeof strengthsToUse[number]) => {
           if (strengthType === 'attack') return [s.team, s.attack];
           if (strengthType === 'defense') return [s.team, -1 * s.defense];
           // average
@@ -96,9 +99,8 @@ function FixturesTab({ rows, homeAdvantage }: { rows: FixtureRow[]; homeAdvantag
       }
       colorValues.sort((a, b) => a - b);
 
-      // strengthsMap for fixture lookup
-      strengthsToUse.forEach(s => {
-        let value;
+      strengthsToUse.forEach((s: typeof strengthsToUse[number]) => {
+        let value: number;
         if (strengthType === 'attack') value = s.attack;
         else if (strengthType === 'defense') value = -1 * s.defense;
         else value = s.attack - s.defense;
@@ -118,11 +120,11 @@ function FixturesTab({ rows, homeAdvantage }: { rows: FixtureRow[]; homeAdvantag
       setMaxStrength(percentile(colorValues, 0.95));
       setMedianStrength(percentile(colorValues, 0.5));
       setStrengths(strengthsMap);
-      setTeamStrengths(strengthsToUse);
-    } catch (err: any) {
-      setError(err.message || String(err));
+      // Do NOT call setTeamStrengths here, as it causes a loop
+    } catch (err) {
+      setError((err instanceof Error ? err.message : String(err)));
     }
-  }, [avgRange, strengthType, teamStrengths, editedStrengths, rows, setTeamStrengths, homeAdvantage]);
+  }, [avgRange, strengthType, teamStrengths, editedStrengths, rows, homeAdvantage]);
 
   return (
     <>
@@ -185,19 +187,19 @@ function FixturesTab({ rows, homeAdvantage }: { rows: FixtureRow[]; homeAdvantag
         </div>
       </div>
       {!error && fixtureRows.length > 0 && (
-        <table style={{borderCollapse: 'collapse', width: '100%'}}>
+        <table className="fixtures-table">
           <thead>
             <tr>
-              <th style={{border: '1px solid #ccc', padding: '4px', textAlign: 'left'}}>Team</th>
+              <th className="fixtures-th">Team</th>
               {Array.from({length: gameweekCount}, (_, i) => (
-                <th key={i} style={{border: '1px solid #ccc', padding: '4px'}}>{i+1}</th>
+                <th key={i} className="fixtures-th-number">{i+1}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {fixtureRows.map(row => (
               <tr key={row.team}>
-                <td style={{border: '1px solid #ccc', padding: '4px', fontWeight: 'bold', textAlign: 'left'}}>{row.team}</td>
+                <td className="fixtures-td-team">{row.team}</td>
                 {row.fixtures.map((fixture, i) => {
                   // Average over next avgRange matches
                   let avgValue = null;
@@ -220,7 +222,7 @@ function FixturesTab({ rows, homeAdvantage }: { rows: FixtureRow[]; homeAdvantag
                     ? getColor(avgValue, minStrength, maxStrength, medianStrength)
                     : '#fff';
                   return (
-                    <td key={i} style={{border: '1px solid #ccc', padding: '4px', background: color}}>{fixture}</td>
+                    <td key={i} className="fixtures-td" style={{ background: color }}>{fixture}</td>
                   );
                 })}
               </tr>
