@@ -94,6 +94,33 @@
   font-weight: 500;
   color: var(--text-color);
 }
+
+.strengths-controls {
+  margin-bottom: 1em;
+  display: flex;
+  gap: 1em;
+  align-items: center;
+}
+
+.btn-save,
+.btn-load {
+  padding: 8px 16px;
+  border: 1px solid var(--button-border);
+  background: var(--button-bg);
+  color: var(--button-text);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  border-radius: 4px;
+  font-size: 0.95em;
+}
+
+.btn-save:hover,
+.btn-load:hover {
+  background: #007acc;
+  color: #fff;
+  border-color: #007acc;
+}
+
 .error-message {
   color: red;
   margin-bottom: 1em;

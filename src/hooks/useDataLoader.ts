@@ -18,10 +18,10 @@ interface DataLoadingResult {
  */
 export function useDataLoader(): DataLoadingResult {
   const context = useContext(Context) as ContextType;
-  const { setTeamStrengths } = context;
+  const { setTeamStrengths, setHomeAdvantage } = context;
 
   const [fixtureRows, setFixtureRows] = useState<FixtureRow[]>([]);
-  const [homeAdvantage, setHomeAdvantage] = useState(0);
+  const [homeAdvantageLocal, setHomeAdvantageLocal] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -39,6 +39,7 @@ export function useDataLoader(): DataLoadingResult {
         // Parse strengths CSV
         const strengthsText = strengthsCSV;
         const { strengths, homeAdvantage: parsedHomeAdvantage } = parseStrengthsCSV(strengthsText);
+        setHomeAdvantageLocal(parsedHomeAdvantage);
         setHomeAdvantage(parsedHomeAdvantage);
         setTeamStrengths(strengths);
 
@@ -50,11 +51,11 @@ export function useDataLoader(): DataLoadingResult {
     };
 
     loadData();
-  }, [setTeamStrengths]);
+  }, [setTeamStrengths, setHomeAdvantage]);
 
   return {
     fixtureRows,
-    homeAdvantage,
+    homeAdvantage: homeAdvantageLocal,
     error,
     isLoading
   };
