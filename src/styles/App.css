@@ -87,7 +87,7 @@
 .strengths-input.focus.defense {
   border-bottom: 2px solid #d32f2f;
 }
-.strengths-diff {
+.strengths-avg {
   border: 1px solid var(--border-color);
   padding: 10px 12px;
   text-align: center;

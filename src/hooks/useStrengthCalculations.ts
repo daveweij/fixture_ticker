@@ -11,8 +11,8 @@ export type StrengthType = 'attack' | 'defense' | 'combined';
  */
 function getStrengthValue(team: TeamStrength, strengthType: StrengthType): number {
   if (strengthType === 'attack') return team.attack;
-  if (strengthType === 'defense') return -1 * team.defense;
-  return team.attack - team.defense;
+  if (strengthType === 'defense') return team.defense;
+  return team.attack + team.defense;
 }
 
 interface StrengthCalculationResult {
@@ -60,21 +60,21 @@ export function useStrengthCalculations(
 
       // Calculate color values for range determination
       let colorValues: number[] = [];
-      
+
       if (avgRange > 1 && rows.length > 0) {
         // Calculate averaged values for color range
         colorValues = calculateAveragedColorValues(
-          rows, 
-          strengthsToUse, 
-          avgRange, 
-          strengthType, 
+          rows,
+          strengthsToUse,
+          avgRange,
+          strengthType,
           homeAdvantage
         );
       } else {
         // Use single fixture values for color range
         colorValues = calculateSingleFixtureColorValues(
-          strengthsToUse, 
-          strengthType, 
+          strengthsToUse,
+          strengthType,
           homeAdvantage
         );
       }
@@ -122,31 +122,31 @@ function calculateAveragedColorValues(
     for (let i = 0; i < row.fixtures.length; i++) {
       let sum = 0;
       let count = 0;
-      
+
       for (let j = i; j < Math.min(i + avgRange, row.fixtures.length); j++) {
         const opp = row.fixtures[j].trim();
         const oppKey = opp.toUpperCase();
         let value: number | null = null;
-        
-        const teamObj = strengthsToUse.find((t: TeamStrength) => 
+
+        const teamObj = strengthsToUse.find((t: TeamStrength) =>
           t.team.toUpperCase() === oppKey
         );
-        
+
         if (teamObj) {
           value = getStrengthValue(teamObj, strengthType);
-          
+
           const is_home_game = (opp !== oppKey);
           if (is_home_game && value !== null) {
             value -= homeAdvantage;
           }
-          
+
           if (value !== null) {
             sum += value;
             count++;
           }
         }
       }
-      
+
       if (count > 0) colorValues.push(sum / count);
     }
   }
@@ -165,9 +165,9 @@ function calculateSingleFixtureColorValues(
   const strengthArray: Array<[string, number]> = strengthsToUse.map((s: TeamStrength) => {
     return [s.team, getStrengthValue(s, strengthType)];
   });
-  
+
   const awayValues = strengthArray.map(([, strength]) => strength);
   const homeValues = strengthArray.map(([, strength]) => strength - homeAdvantage);
-  
+
   return [...awayValues, ...homeValues];
 }

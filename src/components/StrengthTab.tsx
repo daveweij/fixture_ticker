@@ -22,13 +22,13 @@ function StrengthTab() {
       try {
         const content = await readStrengthsFile(file);
         const { strengths, homeAdvantage: loadedHomeAdvantage } = parseStrengthsCSV(content);
-        
+
         // Convert strengths array to editedStrengths record format
         const loadedStrengths: Record<string, { attack: number; defense: number }> = {};
         strengths.forEach(team => {
           loadedStrengths[team.team] = { attack: team.attack, defense: team.defense };
         });
-        
+
         setEditedStrengths(loadedStrengths);
         setHomeAdvantage(loadedHomeAdvantage);
         setInputValues({}); // Clear input values to show loaded data
@@ -72,18 +72,21 @@ function StrengthTab() {
               <th className="strengths-header">Team</th>
               <th className="strengths-header">Attack</th>
               <th className="strengths-header">Defense</th>
-              <th className="strengths-header">Difference</th>
+              <th className="strengths-header">Average</th>
             </tr>
           </thead>
           <tbody>
             {(teamStrengths as TeamStrength[])
-              .sort((a: TeamStrength, b: TeamStrength) => (b.attack - b.defense) - (a.attack - a.defense))
+              .sort((a: TeamStrength, b: TeamStrength) => (b.attack + b.defense) - (a.attack + a.defense))
               .map((team: TeamStrength) => (
                 <tr key={team.team} className="strengths-row">
                   <td className="strengths-team">{team.team}</td>
                   <td className="strengths-cell">
                     <input
-                      type="text"
+                      type="number"
+                      step={1}
+                      max={10}
+                      min={1}
                       inputMode="decimal"
                       pattern="[0-9]*"
                       value={inputValues[team.team]?.attack ?? (editedStrengths[team.team]?.attack ?? team.attack)}
@@ -98,12 +101,12 @@ function StrengthTab() {
                             defense: prev[team.team]?.defense ?? undefined
                           }
                         }));
-                        const val = parseFloat(e.target.value);
+                        const val = parseInt(e.target.value);
                         if (!isNaN(val)) {
                           setEditedStrengths((prev: Record<string, { attack: number; defense: number }>) => ({
                             ...prev,
                             [team.team]: {
-                              attack: Math.round(val * 100) / 100,
+                              attack: Math.max(1, Math.min(10, val)),
                               defense: prev[team.team]?.defense ?? team.defense
                             }
                           }));
@@ -113,7 +116,10 @@ function StrengthTab() {
                   </td>
                   <td className="strengths-cell">
                     <input
-                      type="text"
+                      type="number"
+                      step={1}
+                      max={10}
+                      min={1}
                       inputMode="decimal"
                       pattern="[0-9]*"
                       value={inputValues[team.team]?.defense ?? (editedStrengths[team.team]?.defense ?? team.defense)}
@@ -128,24 +134,24 @@ function StrengthTab() {
                             defense: e.target.value
                           }
                         }));
-                        const val = parseFloat(e.target.value);
+                        const val = parseInt(e.target.value);
                         if (!isNaN(val)) {
                           setEditedStrengths((prev: Record<string, { attack: number; defense: number }>) => ({
                             ...prev,
                             [team.team]: {
                               attack: prev[team.team]?.attack ?? team.attack,
-                              defense: Math.round(val * 100) / 100
+                              defense: Math.max(1, Math.min(10, val)),
                             }
                           }));
                         }
                       }}
                     />
                   </td>
-                  <td className="strengths-diff">
-                    {(
-                      (editedStrengths[team.team]?.attack ?? team.attack)
-                      - (editedStrengths[team.team]?.defense ?? team.defense)
-                    ).toFixed(2)}
+                  <td className="strengths-avg" align="center">
+                    {
+                      0.5 * ((editedStrengths[team.team]?.attack ?? team.attack)
+                        + (editedStrengths[team.team]?.defense ?? team.defense))
+                    }
                   </td>
                 </tr>
               ))}
