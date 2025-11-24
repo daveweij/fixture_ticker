@@ -10,8 +10,14 @@ function App() {
   );
 
   // Use the data loading hook
-  const { fixtureRows, homeAdvantage, error, isLoading, startingGameweek } =
-    useDataLoader();
+  const {
+    fixtureRows,
+    homeAdvantage,
+    error,
+    isLoading,
+    startingGameweek,
+    totalGameweeks,
+  } = useDataLoader();
 
   if (isLoading) {
     return (
@@ -46,6 +52,7 @@ function App() {
           rows={fixtureRows}
           homeAdvantage={homeAdvantage}
           startingGameweek={startingGameweek}
+          totalGameweeks={totalGameweeks}
         />
       )}
 

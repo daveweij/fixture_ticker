@@ -1,20 +1,29 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import type { FixtureRow } from "../utils/parse";
 import { useStrengthCalculations } from "../hooks/useStrengthCalculations";
 import type { StrengthType } from "../hooks/useStrengthCalculations";
 import { StrengthControls } from "./StrengthControls";
+import { GameweekControls } from "./GameweekControls";
 import { FixturesTable } from "./FixturesTable";
+import { Context } from "../context/Context.tsx";
+import type { ContextType } from "../context/Context.tsx";
 import "../styles/FixturesTab.css";
 
 function FixturesTab({
   rows,
   homeAdvantage,
   startingGameweek,
+  totalGameweeks,
 }: {
   rows: FixtureRow[];
   homeAdvantage: number;
   startingGameweek: number;
+  totalGameweeks: number;
 }) {
+  const context = useContext(Context) as ContextType;
+  const { startGameweek, endGameweek, setStartGameweek, setEndGameweek } =
+    context;
+
   const [fixtureRows, setFixtureRows] = useState<FixtureRow[]>([]);
   const [gameweekCount, setGameweekCount] = useState(0);
   const [strengthType, setStrengthType] = useState<StrengthType>("combined");
@@ -42,11 +51,19 @@ function FixturesTab({
       <StrengthControls
         strengthType={strengthType}
         onStrengthTypeChange={setStrengthType}
+      />
+
+      <GameweekControls
         avgRange={avgRange}
         avgRangeInput={avgRangeInput}
         gameweekCount={gameweekCount}
         onAvgRangeChange={setAvgRange}
         onAvgRangeInputChange={setAvgRangeInput}
+        totalGameweeks={totalGameweeks}
+        startGameweek={startGameweek ?? startingGameweek}
+        endGameweek={endGameweek ?? startingGameweek + gameweekCount - 1}
+        onStartGameweekChange={setStartGameweek}
+        onEndGameweekChange={setEndGameweek}
       />
 
       {!error && fixtureRows.length > 0 && (

@@ -18,6 +18,9 @@ interface DataLoadingResult {
   error: string | null;
   isLoading: boolean;
   startingGameweek: number;
+  totalGameweeks: number;
+  defaultStartGameweek: number;
+  defaultEndGameweek: number;
 }
 
 /**
@@ -25,13 +28,23 @@ interface DataLoadingResult {
  */
 export function useDataLoader(): DataLoadingResult {
   const context = useContext(Context) as ContextType;
-  const { setTeamStrengths, setHomeAdvantage } = context;
+  const {
+    setTeamStrengths,
+    setHomeAdvantage,
+    startGameweek: manualStartGW,
+    endGameweek: manualEndGW,
+    setStartGameweek,
+    setEndGameweek,
+  } = context;
 
   const [fixtureRows, setFixtureRows] = useState<FixtureRow[]>([]);
   const [homeAdvantageLocal, setHomeAdvantageLocal] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [startingGameweek, setStartingGameweek] = useState(0);
+  const [totalGameweeks, setTotalGameweeks] = useState(0);
+  const [defaultStartGameweek, setDefaultStartGameweek] = useState(0);
+  const [defaultEndGameweek, setDefaultEndGameweek] = useState(0);
 
   useEffect(() => {
     const loadData = async () => {
@@ -43,19 +56,42 @@ export function useDataLoader(): DataLoadingResult {
         const gameweekDatesText = gameweekDatesCSV;
         const gameweekDates = parseGameweekDatesCSV(gameweekDatesText);
         const startGW = getStartingGameweek(gameweekDates);
-        setStartingGameweek(startGW);
 
         // Parse fixtures CSV
         const fixturesText = fixturesCSV;
         const parsedFixtureRows = parseFixturesCSV(fixturesText);
+        const totalGW =
+          parsedFixtureRows.length > 0
+            ? parsedFixtureRows[0].fixtures.length
+            : 0;
+        setTotalGameweeks(totalGW);
 
-        // Filter fixtures to only show from the starting gameweek onwards
+        // Set defaults if not already set in context
+        const defaultStart = startGW;
+        const defaultEnd = totalGW - 1;
+        setDefaultStartGameweek(defaultStart);
+        setDefaultEndGameweek(defaultEnd);
+
+        if (manualStartGW === null) {
+          setStartGameweek(defaultStart);
+        }
+        if (manualEndGW === null) {
+          setEndGameweek(defaultEnd);
+        }
+
+        // Use manual values if set, otherwise use defaults
+        const actualStartGW =
+          manualStartGW !== null ? manualStartGW : defaultStart;
+        const actualEndGW = manualEndGW !== null ? manualEndGW : defaultEnd;
+
+        // Filter fixtures to only show the selected range
         const filteredFixtureRows = parsedFixtureRows.map((row) => ({
           team: row.team,
-          fixtures: row.fixtures.slice(startGW),
+          fixtures: row.fixtures.slice(actualStartGW, actualEndGW + 1),
         }));
 
         setFixtureRows(filteredFixtureRows);
+        setStartingGameweek(actualStartGW);
 
         // Parse strengths CSV
         const strengthsText = strengthsCSV;
@@ -73,7 +109,14 @@ export function useDataLoader(): DataLoadingResult {
     };
 
     loadData();
-  }, [setTeamStrengths, setHomeAdvantage]);
+  }, [
+    setTeamStrengths,
+    setHomeAdvantage,
+    manualStartGW,
+    manualEndGW,
+    setStartGameweek,
+    setEndGameweek,
+  ]);
 
   return {
     fixtureRows,
@@ -81,5 +124,8 @@ export function useDataLoader(): DataLoadingResult {
     error,
     isLoading,
     startingGameweek,
+    totalGameweeks,
+    defaultStartGameweek,
+    defaultEndGameweek,
   };
 }
