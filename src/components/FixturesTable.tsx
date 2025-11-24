@@ -35,6 +35,33 @@ export function FixturesTable({
     direction: "asc",
   });
 
+  const getFixtureStrength = useCallback(
+    (row: FixtureRow, index: number): number | null => {
+      if (index < 0 || index >= row.fixtures.length) {
+        return null;
+      }
+
+      const opp = row.fixtures[index].trim();
+      if (!opp) {
+        return null;
+      }
+
+      const oppKey = opp.toUpperCase();
+      let value = strengths[oppKey];
+
+      if (value === undefined) {
+        return null;
+      }
+
+      if (opp === oppKey) {
+        value = value - homeAdvantage;
+      }
+
+      return value;
+    },
+    [strengths, homeAdvantage]
+  );
+
   // Function to calculate FDR for a team at a specific gameweek
   const calculateFDR = useCallback(
     (row: FixtureRow, gameweek: number): number | null => {
@@ -46,32 +73,8 @@ export function FixturesTable({
         j < Math.min(gameweek + avgRange, row.fixtures.length);
         j++
       ) {
-        const opp = row.fixtures[j].trim();
-        const oppKey = opp.toUpperCase();
-        let value = strengths[oppKey];
+        const value = getFixtureStrength(row, j);
 
-        if (opp === oppKey && value !== undefined) {
-          value -= homeAdvantage;
-        }
-
-        if (value !== undefined) {
-          sum += value;
-          count++;
-        }
-      }
-
-      return count > 0 ? sum / count : null;
-    },
-    [avgRange, strengths, homeAdvantage]
-  );
-
-  const calculateAvgFDR = useCallback(
-    (row: FixtureRow): number | null => {
-      let sum = 0;
-      let count = 0;
-
-      for (let i = 0; i < row.fixtures.length; i++) {
-        const value = calculateFDR(row, i);
         if (value !== null) {
           sum += value;
           count++;
@@ -80,7 +83,25 @@ export function FixturesTable({
 
       return count > 0 ? sum / count : null;
     },
-    [calculateFDR]
+    [avgRange, getFixtureStrength]
+  );
+
+  const calculateAvgFDR = useCallback(
+    (row: FixtureRow): number | null => {
+      let sum = 0;
+      let count = 0;
+
+      for (let i = 0; i < row.fixtures.length; i++) {
+        const value = getFixtureStrength(row, i);
+        if (value !== null) {
+          sum += value;
+          count++;
+        }
+      }
+
+      return count > 0 ? sum / count : null;
+    },
+    [getFixtureStrength]
   );
 
   // Sort the fixture rows based on current sort configuration
