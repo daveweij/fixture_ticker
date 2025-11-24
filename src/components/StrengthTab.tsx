@@ -1,18 +1,34 @@
 import { useContext, useState, useRef } from "react";
-import { Context } from '../context/Context.tsx';
-import type { ContextType, TeamStrength } from '../context/Context.tsx';
-import { exportStrengthsToCSV, downloadStrengthsFile, readStrengthsFile } from '../utils/strengthsIO';
-import { parseStrengthsCSV } from '../utils/parse';
-
+import { Context } from "../context/Context.tsx";
+import type { ContextType, TeamStrength } from "../context/Context.tsx";
+import {
+  exportStrengthsToCSV,
+  downloadStrengthsFile,
+  readStrengthsFile,
+} from "../utils/strengthsIO";
+import { parseStrengthsCSV } from "../utils/parse";
+import StrengthInput from "./StrengthInput";
 
 function StrengthTab() {
   const context = useContext(Context) as ContextType;
-  const { teamStrengths, editedStrengths, setEditedStrengths, homeAdvantage, setHomeAdvantage } = context;
-  const [inputValues, setInputValues] = useState<Record<string, { attack?: string; defense?: string }>>({});
+  const {
+    teamStrengths,
+    editedStrengths,
+    setEditedStrengths,
+    homeAdvantage,
+    setHomeAdvantage,
+  } = context;
+  const [inputValues, setInputValues] = useState<
+    Record<string, { attack?: string; defense?: string }>
+  >({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSave = async () => {
-    const csvContent = exportStrengthsToCSV(teamStrengths, editedStrengths, homeAdvantage);
+    const csvContent = exportStrengthsToCSV(
+      teamStrengths,
+      editedStrengths,
+      homeAdvantage
+    );
     await downloadStrengthsFile(csvContent);
   };
 
@@ -21,25 +37,32 @@ function StrengthTab() {
     if (file) {
       try {
         const content = await readStrengthsFile(file);
-        const { strengths, homeAdvantage: loadedHomeAdvantage } = parseStrengthsCSV(content);
+        const { strengths, homeAdvantage: loadedHomeAdvantage } =
+          parseStrengthsCSV(content);
 
         // Convert strengths array to editedStrengths record format
-        const loadedStrengths: Record<string, { attack: number; defense: number }> = {};
-        strengths.forEach(team => {
-          loadedStrengths[team.team] = { attack: team.attack, defense: team.defense };
+        const loadedStrengths: Record<
+          string,
+          { attack: number; defense: number }
+        > = {};
+        strengths.forEach((team) => {
+          loadedStrengths[team.team] = {
+            attack: team.attack,
+            defense: team.defense,
+          };
         });
 
         setEditedStrengths(loadedStrengths);
         setHomeAdvantage(loadedHomeAdvantage);
         setInputValues({}); // Clear input values to show loaded data
       } catch (error) {
-        console.error('Failed to load strengths file:', error);
-        alert('Failed to load strengths file. Please check the file format.');
+        console.error("Failed to load strengths file:", error);
+        alert("Failed to load strengths file. Please check the file format.");
       }
     }
     // Reset file input
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -62,7 +85,7 @@ function StrengthTab() {
           type="file"
           accept=".fixture_strengths"
           onChange={handleLoad}
-          style={{ display: 'none' }}
+          style={{ display: "none" }}
         />
       </div>
       {teamStrengths.length > 0 && (
@@ -77,81 +100,75 @@ function StrengthTab() {
           </thead>
           <tbody>
             {(teamStrengths as TeamStrength[])
-              .sort((a: TeamStrength, b: TeamStrength) => (b.attack + b.defense) - (a.attack + a.defense))
+              .sort(
+                (a: TeamStrength, b: TeamStrength) =>
+                  b.attack + b.defense - (a.attack + a.defense)
+              )
               .map((team: TeamStrength) => (
                 <tr key={team.team} className="strengths-row">
                   <td className="strengths-team">{team.team}</td>
                   <td className="strengths-cell">
-                    <input
-                      type="number"
-                      step={1}
-                      max={10}
-                      min={1}
-                      inputMode="decimal"
-                      pattern="[0-9]*"
-                      value={inputValues[team.team]?.attack ?? (editedStrengths[team.team]?.attack ?? team.attack)}
+                    <StrengthInput
                       className="strengths-input attack"
-                      onFocus={e => e.target.classList.add('focus')}
-                      onBlur={e => e.target.classList.remove('focus')}
-                      onChange={e => {
-                        setInputValues((prev: Record<string, { attack?: string; defense?: string }>) => ({
+                      displayValue={
+                        inputValues[team.team]?.attack ??
+                        editedStrengths[team.team]?.attack ??
+                        team.attack
+                      }
+                      onChange={(e) => {
+                        setInputValues((prev) => ({
                           ...prev,
                           [team.team]: {
+                            ...prev[team.team],
                             attack: e.target.value,
-                            defense: prev[team.team]?.defense ?? undefined
-                          }
+                          },
                         }));
                         const val = parseInt(e.target.value);
                         if (!isNaN(val)) {
-                          setEditedStrengths((prev: Record<string, { attack: number; defense: number }>) => ({
+                          setEditedStrengths((prev) => ({
                             ...prev,
                             [team.team]: {
                               attack: Math.max(1, Math.min(10, val)),
-                              defense: prev[team.team]?.defense ?? team.defense
-                            }
+                              defense: prev[team.team]?.defense ?? team.defense,
+                            },
                           }));
                         }
                       }}
                     />
                   </td>
                   <td className="strengths-cell">
-                    <input
-                      type="number"
-                      step={1}
-                      max={10}
-                      min={1}
-                      inputMode="decimal"
-                      pattern="[0-9]*"
-                      value={inputValues[team.team]?.defense ?? (editedStrengths[team.team]?.defense ?? team.defense)}
+                    <StrengthInput
                       className="strengths-input defense"
-                      onFocus={e => e.target.classList.add('focus')}
-                      onBlur={e => e.target.classList.remove('focus')}
-                      onChange={e => {
-                        setInputValues((prev: Record<string, { attack?: string; defense?: string }>) => ({
+                      displayValue={
+                        inputValues[team.team]?.defense ??
+                        editedStrengths[team.team]?.defense ??
+                        team.defense
+                      }
+                      onChange={(e) => {
+                        setInputValues((prev) => ({
                           ...prev,
                           [team.team]: {
-                            attack: prev[team.team]?.attack ?? undefined,
-                            defense: e.target.value
-                          }
+                            ...prev[team.team],
+                            defense: e.target.value,
+                          },
                         }));
                         const val = parseInt(e.target.value);
                         if (!isNaN(val)) {
-                          setEditedStrengths((prev: Record<string, { attack: number; defense: number }>) => ({
+                          setEditedStrengths((prev) => ({
                             ...prev,
                             [team.team]: {
                               attack: prev[team.team]?.attack ?? team.attack,
                               defense: Math.max(1, Math.min(10, val)),
-                            }
+                            },
                           }));
                         }
                       }}
                     />
                   </td>
                   <td className="strengths-avg" align="center">
-                    {
-                      0.5 * ((editedStrengths[team.team]?.attack ?? team.attack)
-                        + (editedStrengths[team.team]?.defense ?? team.defense))
-                    }
+                    {0.5 *
+                      ((editedStrengths[team.team]?.attack ?? team.attack) +
+                        (editedStrengths[team.team]?.defense ?? team.defense))}
                   </td>
                 </tr>
               ))}
