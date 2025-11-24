@@ -31,6 +31,7 @@ export function useDataLoader(): DataLoadingResult {
   const {
     setTeamStrengths,
     setHomeAdvantage,
+    homeAdvantage,
     startGameweek: manualStartGW,
     endGameweek: manualEndGW,
     setStartGameweek,
@@ -38,7 +39,6 @@ export function useDataLoader(): DataLoadingResult {
   } = context;
 
   const [fixtureRows, setFixtureRows] = useState<FixtureRow[]>([]);
-  const [homeAdvantageLocal, setHomeAdvantageLocal] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [startingGameweek, setStartingGameweek] = useState(0);
@@ -97,7 +97,6 @@ export function useDataLoader(): DataLoadingResult {
         const strengthsText = strengthsCSV;
         const { strengths, homeAdvantage: parsedHomeAdvantage } =
           parseStrengthsCSV(strengthsText);
-        setHomeAdvantageLocal(parsedHomeAdvantage);
         setHomeAdvantage(parsedHomeAdvantage);
         setTeamStrengths(strengths);
 
@@ -120,7 +119,7 @@ export function useDataLoader(): DataLoadingResult {
 
   return {
     fixtureRows,
-    homeAdvantage: homeAdvantageLocal,
+    homeAdvantage,
     error,
     isLoading,
     startingGameweek,
