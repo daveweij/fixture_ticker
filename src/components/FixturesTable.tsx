@@ -15,7 +15,7 @@ interface FixturesTableProps {
 }
 
 type SortConfig = {
-  gameweek: number | null;
+  gameweek: number | "avg" | null;
   direction: "asc" | "desc";
 };
 
@@ -65,6 +65,24 @@ export function FixturesTable({
     [avgRange, strengths, homeAdvantage]
   );
 
+  const calculateAvgFDR = useCallback(
+    (row: FixtureRow): number | null => {
+      let sum = 0;
+      let count = 0;
+
+      for (let i = 0; i < row.fixtures.length; i++) {
+        const value = calculateFDR(row, i);
+        if (value !== null) {
+          sum += value;
+          count++;
+        }
+      }
+
+      return count > 0 ? sum / count : null;
+    },
+    [calculateFDR]
+  );
+
   // Sort the fixture rows based on current sort configuration
   const sortedRows = useMemo(() => {
     if (sortConfig.gameweek === null) {
@@ -72,8 +90,17 @@ export function FixturesTable({
     }
 
     const sorted = [...fixtureRows].sort((a, b) => {
-      const fdrA = calculateFDR(a, sortConfig.gameweek!);
-      const fdrB = calculateFDR(b, sortConfig.gameweek!);
+      let fdrA: number | null;
+      let fdrB: number | null;
+
+      if (sortConfig.gameweek === "avg") {
+        fdrA = calculateAvgFDR(a);
+        fdrB = calculateAvgFDR(b);
+      } else {
+        const gwIndex = sortConfig.gameweek as number;
+        fdrA = calculateFDR(a, gwIndex);
+        fdrB = calculateFDR(b, gwIndex);
+      }
 
       // Handle null values (put them at the end)
       if (fdrA === null && fdrB === null) return 0;
@@ -85,9 +112,9 @@ export function FixturesTable({
     });
 
     return sorted;
-  }, [fixtureRows, sortConfig, calculateFDR]);
+  }, [fixtureRows, sortConfig, calculateFDR, calculateAvgFDR]);
 
-  const handleSort = (gameweek: number) => {
+  const handleSort = (gameweek: number | "avg") => {
     setSortConfig((prev) => {
       if (prev.gameweek === gameweek) {
         // Toggle direction if clicking the same column
@@ -123,31 +150,63 @@ export function FixturesTable({
               )}
             </th>
           ))}
+          <th
+            className="fixtures-th-number"
+            onClick={() => handleSort("avg")}
+            style={{ cursor: "pointer", userSelect: "none" }}
+            title="Sort by average FDR across visible gameweeks"
+          >
+            Avg FDR
+            {sortConfig.gameweek === "avg" && (
+              <span style={{ marginLeft: "4px" }}>
+                {sortConfig.direction === "asc" ? "▲" : "▼"}
+              </span>
+            )}
+          </th>
         </tr>
       </thead>
       <tbody>
-        {sortedRows.map((row) => (
-          <tr key={row.team}>
-            <td className="fixtures-td-team">{row.team}</td>
-            {row.fixtures.map((fixture, i) => {
-              // Average over next avgRange matches
-              const avgValue = calculateFDR(row, i);
-              const color =
-                avgValue !== null
-                  ? getColor(avgValue, minStrength, maxStrength, medianStrength)
-                  : "#fff";
-              return (
-                <td
-                  key={i}
-                  className="fixtures-td"
-                  style={{ background: color }}
-                >
-                  {fixture}
-                </td>
-              );
-            })}
-          </tr>
-        ))}
+        {sortedRows.map((row) => {
+          const avgFDR = calculateAvgFDR(row);
+          const avgColor =
+            avgFDR !== null
+              ? getColor(avgFDR, minStrength, maxStrength, medianStrength)
+              : "#fff";
+
+          return (
+            <tr key={row.team}>
+              <td className="fixtures-td-team">{row.team}</td>
+              {row.fixtures.map((fixture, i) => {
+                // Average over next avgRange matches
+                const avgValue = calculateFDR(row, i);
+                const color =
+                  avgValue !== null
+                    ? getColor(
+                        avgValue,
+                        minStrength,
+                        maxStrength,
+                        medianStrength
+                      )
+                    : "#fff";
+                return (
+                  <td
+                    key={i}
+                    className="fixtures-td"
+                    style={{ background: color }}
+                  >
+                    {fixture}
+                  </td>
+                );
+              })}
+              <td
+                className="fixtures-td"
+                style={{ background: avgColor, fontWeight: "bold" }}
+              >
+                {avgFDR !== null ? avgFDR.toFixed(2) : "-"}
+              </td>
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );
