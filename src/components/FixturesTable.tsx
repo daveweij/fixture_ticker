@@ -53,7 +53,8 @@ export function FixturesTable({
         return null;
       }
 
-      if (opp === oppKey) {
+      // Home games are indicated by uppercase opponent codes
+      if (opp === opp.toUpperCase()) {
         value = value - homeAdvantage;
       }
 
