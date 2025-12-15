@@ -90,6 +90,32 @@ function StrengthTab() {
       </div>
       {teamStrengths.length > 0 && (
         <>
+          <div className="home-advantage-section">
+            <label
+              className="home-advantage-label"
+              htmlFor="home-advantage-input"
+            >
+              Home Advantage
+            </label>
+            <StrengthInput
+              className="strengths-input home-advantage"
+              displayValue={homeAdvantage}
+              min={0}
+              max={10}
+              onChange={(e) => {
+                const value = e.target.value;
+                const parsed = parseInt(value, 10);
+                if (!isNaN(parsed)) {
+                  const clamped = Math.max(0, Math.min(10, parsed));
+                  setHomeAdvantage(clamped);
+                }
+              }}
+            />
+          </div>
+          <small>
+            * Home advantage is subtracted from the away team's strength when
+            calculating fixture strengths.
+          </small>
           <table className="strengths-table">
             <thead>
               <tr className="strengths-header-row">
@@ -177,32 +203,6 @@ function StrengthTab() {
                 ))}
             </tbody>
           </table>
-          <div className="home-advantage-section">
-            <label
-              className="home-advantage-label"
-              htmlFor="home-advantage-input"
-            >
-              Home Advantage
-            </label>
-            <StrengthInput
-              className="strengths-input home-advantage"
-              displayValue={homeAdvantage}
-              min={0}
-              max={10}
-              onChange={(e) => {
-                const value = e.target.value;
-                const parsed = parseInt(value, 10);
-                if (!isNaN(parsed)) {
-                  const clamped = Math.max(0, Math.min(10, parsed));
-                  setHomeAdvantage(clamped);
-                }
-              }}
-            />
-          </div>
-          <small>
-            * Home advantage is subtracted from the away team's strength when
-            calculating fixture strengths.
-          </small>
         </>
       )}
     </>
